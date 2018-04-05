@@ -27,6 +27,10 @@ output-file: trdrop-triple-output.avi
 # true / false
 output-as-bmps: false
 
+# Experimental feature - this may change in the future
+# We export only the overlay, this works with the flag 'output-as-pngs'
+activate-overlay: false
+
 # The codec which used to export the video
 # 
 # OpenCV is a little bit picky when it comes to codecs, especially if you're on Windows and want to modify the resulting video in After Effects

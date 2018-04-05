@@ -20,10 +20,14 @@ input-files:
 # watch out for the extention, because opencv does not like some codecs with some containers (just use .avi)
 output-file: trdrop-output.avi
 
-# if you trigger this option, trdrop will drop the raw frames as bmp into the starting directory. They should be importable
+# if you trigger this option, trdrop will drop the raw frames as pngs into the starting directory. They should be importable
 # with every major video editing program
 # true / false
-output-as-bmps: false
+output-as-pngs: true
+
+# Experimental feature - this may change in the future
+# We export only the overlay, this works with the flag 'output-as-pngs'
+activate-overlay: true
 
 # The codec which used to export the video
 # 

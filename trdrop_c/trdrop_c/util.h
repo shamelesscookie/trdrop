@@ -169,7 +169,7 @@ namespace trdrop {
 		}
 
 		// again, blatantly copied from https://stackoverflow.com/questions/18398468/c-stl-convert-string-with-rgb-color-to-3-int-values
-		cv::Scalar hexToBGR(std::string & hex, cv::Scalar & default)
+		cv::Scalar hexToBGRA(std::string & hex, cv::Scalar & default)
 		{
 			if (hex.size() < 6) return default;
 			if (hex[0] == '#') hex = hex.erase(0, 1);
@@ -182,7 +182,8 @@ namespace trdrop {
 
 			if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) return default;
 
-			return cv::Scalar(b, g, r);
+			// alpha = 255 means 100% visible
+			return cv::Scalar(b, g, r, 255);
 		}
 
 	} // namespace util

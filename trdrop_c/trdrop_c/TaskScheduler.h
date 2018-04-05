@@ -106,8 +106,21 @@ namespace trdrop {
 
 				}
 				else {
-					std::cout << "\nError: merging for more than two videos is not defined...yet\n";
+					std::cout << "\nError: merging for more than three videos is not defined yet\n";
 				}
+			}
+
+			/*
+			 * We're reading a RGB/BGR video image by image and add an alpha channel to each frame so we can export
+			 * only the overlay
+			 *
+			 * This is a quick implementation without testing the performance, there are possibly better implementations
+			 */
+			void addAlpha(cv::Mat & merged) {
+				cv::Mat newSrc = cv::Mat::zeros(merged.rows, merged.cols, CV_8UC4);
+				int from_to[] = { 0,0, 1,1, 2,2, 3,3 };
+				cv::mixChannels(&merged, 1, &newSrc, 1, from_to, merged.channels());
+				merged = newSrc;
 			}
 
 			bool next() {
@@ -137,7 +150,6 @@ namespace trdrop {
 #if _TR_DEBUG
 					std::cout << "DEBUG: TaskScheduler.readSuccesful, currentFrameIndex: " << currentFrameIndex << '\n';
 #endif
-					
 					// pretasks - parallel
 					trdrop::util::enumerate(inputs.begin(), inputs.end(), 0, [&](size_t vix, cv::VideoCapture input) {
 						
@@ -178,8 +190,9 @@ namespace trdrop {
 #endif
 					interTasksFinished.clear();
 					merge(prev, merged);
+					addAlpha(merged);
 #if _TR_DEBUG
-					std::cout << "DEBUG: TaskScheduler - merged frames\n";
+					std::cout << "DEBUG: TaskScheduler - merged frames and added alpha channel\n";
 #endif
 					// post tasks - sequential
 					std::for_each(postTasks.begin(), postTasks.end(), [&](std::shared_ptr<trdrop::tasks::posttask> f) { (*f)(merged, currentFrameIndex); });

@@ -72,18 +72,12 @@ namespace trdrop {
 			private:
 
 				std::function<void(cv::Mat &, const size_t, int)> drawText = [&](cv::Mat & res, const size_t currentFrameIndex, int vix) {
-
+					
 					if (currentFrameIndex % refreshRate[vix] == 0) {
 						tempFrameRates[vix] = getFps(vix);
-						/*
-						trdrop::util::enumerate(fpsTaskData.fps_unprocessed[vix].begin(), fpsTaskData.fps_unprocessed[vix].end(), 0, [&](size_t i, double d) {
-							if (d == 1.0 && tearTaskData.tear_unprocessed[vix][i] == 0) {
-								tempFrameRates[vix] += 1;
-							}
-						}); */
 						fpsTaskData.fps[vix] = tempFrameRates[vix];
 #if _TR_DEBUG
-						std::cout << "DEBUG - FPSTextTask - copied the framerates\n";
+						std::cout << "DEBUG: FPSTextTask - copied the framerates\n";
 #endif
 					}
 

@@ -59,6 +59,23 @@ namespace trdrop {
 			return true;
 		}
 
+		/*
+		 * Set every pixel visibilty to 0 (%), we need to delete all BGR data too, because of how alpha copying works in opencv (see PlotTask.drawGrid)
+		 * Invariant: We need to have at least an image encoding of at least 4 bytes per pixel, e.g CV_8UC4
+		 */
+		void make_transparent(cv::Mat & src) {
+			for (int i = 0; i < src.rows - 10; ++i) {
+				for (int j = 0; j < src.cols; ++j) {
+					auto & pixel = src.at<cv::Vec4b>(i, j);
+					pixel[0] = 0;
+					pixel[1] = 0;
+					pixel[2] = 0;
+					pixel[3] = 0;
+				}
+			}
+		}
+
+
 	} // namespace algorithm
 } // namespace trdrop
 

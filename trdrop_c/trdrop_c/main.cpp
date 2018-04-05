@@ -41,6 +41,7 @@
 #include "CMDProgressTask.h"
 #include "LoggerTask.h"
 #include "PlotTask.h"
+#include "ActivateOverlayTask.h"
 
 #include "fpsdata.h"
 #include "teardata.h"
@@ -93,7 +94,7 @@ int main(int argc, char **argv) {
 	if (config.viewerActive) viewerT.init();
 
 	// WriterTask - Post
-	trdrop::tasks::post::WriterTask writerT(config.outputFile, config.codec, config.getMinimumBakedFPS(), config.writerFrameSize, config.outputAsBmps);
+	trdrop::tasks::post::WriterTask writerT(config.outputFile, config.codec, config.getMinimumBakedFPS(), config.writerFrameSize, config.outputAsPngs);
 
 	// CMDProgressTask - Post
 	trdrop::tasks::post::CMDProgressTask cmdProgressT(config.getMinFrameIndex());
@@ -128,6 +129,8 @@ int main(int argc, char **argv) {
 	scheduler.addInterTask(std::make_shared<trdrop::tasks::inter::LoggerTask<trdrop::util::CSVFormatter>>(loggerT));
 
 	// PostTask - order matters
+	
+	if (config.activateOverlay) scheduler.addPostTask(std::make_shared<trdrop::tasks::post::ActivateOverlayTask>());
 	scheduler.addPostTask(std::make_shared<trdrop::tasks::post::FPSTextTask>(fpsTextT));
 	scheduler.addPostTask(std::make_shared<trdrop::tasks::post::PlotTask>(plotT));
 	if (config.viewerActive) scheduler.addPostTask(std::make_shared<trdrop::tasks::post::ViewerTask>(viewerT));

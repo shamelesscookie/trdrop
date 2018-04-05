@@ -94,6 +94,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActivateOverlayTask.h" />
     <ClInclude Include="CMDProgressTask.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="CSVFormatter.h" />

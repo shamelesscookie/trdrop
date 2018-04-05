@@ -30,9 +30,9 @@ namespace trdrop {
 
 				// specialized member
 			public:
-				WriterTask(std::string filename, int codec, double bakedFps, cv::Size writerFrameSize, bool outputAsBmps)
+				WriterTask(std::string filename, int codec, double bakedFps, cv::Size writerFrameSize, bool outputAsPngs)
 					: output(filename, codec, bakedFps, writerFrameSize)
-					, outputAsBmps(outputAsBmps)
+					, outputAsBmps(outputAsPngs)
 					, fileName(filename)
 					, posttask(std::bind(&WriterTask::process
 						, this
@@ -52,7 +52,7 @@ namespace trdrop {
 				void process(const cv::Mat & res, const size_t currentFrameIndex) {
 					if (outputAsBmps) {
 						char frameName[255];
-						sprintf_s(frameName, "-%07zu.bmp", currentFrameIndex);
+						sprintf_s(frameName, "-%07zu.png", currentFrameIndex);
 						cv::imwrite(fileName + frameName, res);
 						cv::waitKey(100);
 					}	else {

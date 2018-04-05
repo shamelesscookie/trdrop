@@ -69,7 +69,7 @@ namespace trdrop {
 			public:
 				void process(cv::Mat & res, const size_t currentFrameCount) {
 					int plotWindow_ = plotWindow();
-					
+
 					// remove oldest values
 					util::enumerate(fpsContainer.begin(), fpsContainer.end(), 0, [&](size_t i, std::deque<double> & dd) {
 						dd.push_back(getFps(i));
@@ -85,6 +85,9 @@ namespace trdrop {
 					drawGrid(res);
 					drawLines(res);
 					drawTears(res);
+#if _TR_DEBUG
+					std::cout << "DEBUG - PlotTask - drew the plot\n";
+#endif
 				}
 
 				// public member
@@ -100,12 +103,11 @@ namespace trdrop {
 
 					// extra space above 60fps line in px
 					int overhead = 6; // 20; // writerFrameSize.width / 320;
-					
 					// graph background
 					cv::Mat roi = res(cv::Rect(x, y - overhead, width, height+ overhead));
-					cv::Mat color(roi.size(), CV_8UC3, plotBackgroundColor);
+					cv::Mat color(roi.size(), CV_8UC4, plotBackgroundColor);
 					cv::addWeighted(color, plotAlpha, roi, 1.0 - plotAlpha, 0.0, roi);
-					
+
 					// a little brighter than the background
 					//cv::Scalar sepLineColor = cv::Scalar(plotBackgroundColor[0] + 40 % 255
 					//							     , plotBackgroundColor[1] + 40 % 255
@@ -255,7 +257,7 @@ namespace trdrop {
 
 				std::vector<cv::Scalar> colors;
 				std::vector<cv::Scalar> tearColors;
-				const cv::Scalar graphColor = cv::Scalar(255, 255, 255);
+				const cv::Scalar graphColor = cv::Scalar(255, 255, 255, 255);
 				cv::Scalar plotBackgroundColor;
 				cv::Scalar plotLinesColor;
 				cv::Scalar plotAxesColor;
@@ -267,7 +269,6 @@ namespace trdrop {
 				const cv::Size writerFrameSize;
 
 				const int	   maxFps = 60;
-
 
 				const int marginScalingRatio      = 64;   // 1920 / 30, because 30 was our initial px setting for 1080p 
 

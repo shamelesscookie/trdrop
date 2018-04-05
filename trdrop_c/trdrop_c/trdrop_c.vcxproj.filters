@@ -97,5 +97,8 @@
     <ClInclude Include="FPSTextTask.h">
       <Filter>Header Files\tasks\post</Filter>
     </ClInclude>
+    <ClInclude Include="ActivateOverlayTask.h">
+      <Filter>Header Files\tasks\post</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

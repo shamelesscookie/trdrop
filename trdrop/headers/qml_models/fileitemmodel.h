@@ -9,7 +9,7 @@
 
 #include "headers/cpp_interface/fileitem.h"
 
-//!
+//! qml wrapper a file list
 class FileItemModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -34,9 +34,8 @@ public:
       , RecordedFramerateRole = Qt::UserRole + 2
       , QtFilePathRole        = Qt::UserRole + 3
       , FileSelectedRole      = Qt::UserRole + 4
-      , PositionRole          = Qt::UserRole + 5
     };
-//! qml methods - camelCase
+//! methods
 public:
     //! number of elements in the _file_item_list which correlate to the rows
     int rowCount(const QModelIndex & parent = QModelIndex()) const override
@@ -61,8 +60,6 @@ public:
                 return file_item.filePath();
             case SizeMBRole:
                 return file_item.sizeMB();
-            case PositionRole:
-                return file_item.position();
             case QtFilePathRole:
                 return file_item.qtFilePath();
             case FileSelectedRole:
@@ -79,7 +76,6 @@ public:
         FileItem & file_item = _file_item_list[index.row()];
         if (role == FilePathRole) file_item.setFilePath(value.toString());
         else if (role == SizeMBRole) file_item.setSizeMB(value.toUInt());
-        else if (role == PositionRole) file_item.setPosition(static_cast<quint8>(value.toUInt()));
         else if (role == QtFilePathRole) file_item.setQtFilePath(value.toString());
         else if (role == FileSelectedRole) file_item.setFileSelected(value.toBool());
         else if (role == RecordedFramerateRole) file_item.setRecordedFramerate(value.toDouble());
@@ -88,19 +84,18 @@ public:
         emit dataChanged(index, toIndex);
         return true ;
     }
-    //! TODO
+    //! calling c++ QStandardPaths to use them in QML
     Q_INVOKABLE QVariant getDefaultMoviesDirectory() const
     {
         return QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     }
-
-    //! tells the views that the model's state has changed -> this triggers a "recompution" of the delegate
+    //! tells the views that the model's state has changed, triggers a recomputation of each delegate
     Q_INVOKABLE void resetModel()
     {
         beginResetModel();
         endResetModel();
     }
-    //! adds a default, not set fileitem
+    //! adds a default (empty) fileitem
     Q_INVOKABLE void appendDefaultFileItem()
     {
         const FileItem file_item;
@@ -113,12 +108,12 @@ public:
         _file_item_list.removeAt(index);
         emit endRemoveRows();
     }
-    //! checks if the fileSelected property of the item at the index is set, usable in QML
+    //! checks if the fileSelected property of the item at the index is set
     Q_INVOKABLE QVariant isFileSelected(int index)
     {
         return QVariant::fromValue(_file_item_list.at(index).fileSelected());
     }
-    //! TODO
+    //! returns the amount of fileitems with a path
     Q_INVOKABLE QVariant filesSelectedCount()
     {
         quint8 file_selected_count = 0;
@@ -131,14 +126,16 @@ public:
     //! get the filesize in megabyte, QFileInfo.size() returns byte
     Q_INVOKABLE QVariant getFileSize(const QString & url) const
     {
+        // pow(2,10)   ~ KB
+        // pow(2,10)^2 ~ MB
         return QFileInfo(url).size() / (std::pow(2,10) * std::pow(2,10));
     }
-    //! TODO
+    //! wrapper to trigger the updateFileItemPaths signal from qml
     Q_INVOKABLE void emitFilePaths(const QList<QVariant> visual_file_path_list)
     {
         emit updateFileItemPaths(visual_file_path_list);
     }
-    //! TODO
+    //! sets the recorded framerates based on the file_path_list (TODO zip lists) in the model
     Q_INVOKABLE void setRecordedFramerates(const QList<QVariant> visual_file_path_list
                                          , const QList<double> recorded_framerates)
     {
@@ -158,23 +155,19 @@ public:
             }
         }
     }
-
     //! signal to wait from this model if any filepaths have changed
     Q_SIGNAL void updateFileItemPaths(const QList<QVariant> & filePaths);
-//! c++ methods - snake_case
+//! methods
 public:
     //! returns a const fileitem list to get the file information for a cv::VideoCapture
-    const QList<FileItem> get_file_item_list() const {
-        return _file_item_list;
-    }
-//! c++ methods - snake_case
+    const QList<FileItem> get_file_item_list() const { return _file_item_list; }
+//! methods
 private:
-    //! Set names to the role name hash container (QHash<int, QByteArray>)
+    //! set names to the role name hash container (QHash<int, QByteArray>)
     void _setup_role_names()
     {
         _role_names[FilePathRole]          = "filePath";
         _role_names[SizeMBRole]            = "sizeMB";
-        _role_names[PositionRole]          = "position";
         _role_names[QtFilePathRole]        = "qtFilePath";
         _role_names[FileSelectedRole]      = "fileSelected";
         _role_names[RecordedFramerateRole] = "recordedFramerate";

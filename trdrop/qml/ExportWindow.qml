@@ -87,16 +87,9 @@ Window {
                     }
                 }
 
-
-                Switch {
+                Label {
                     id: exportAsImageSequenceSwitch
                     text: model.imagesequencePrefixName
-                    checked: model.imagesequencePrefixEnabled
-                    action: Action {
-                        onTriggered: {
-                            model.imagesequencePrefixEnabled = !checked;
-                        }
-                    }
                 }
                 Rectangle {
                     border {
@@ -147,6 +140,9 @@ Window {
                             checked: model.exportCSVValue
                         }
                     }
+                    ToolTip.text: "Exports the framerate into a trdrop_analysis.csv into the export directory for each video"
+                    ToolTip.delay: 500
+                    ToolTip.visible: hovered
                 }
                 Label {
                     Layout.columnSpan: 2
@@ -162,11 +158,13 @@ Window {
                             checked: model.enableLivePreviewValue
                         }
                     }
+                    ToolTip.text: "Enables the live rendering of the resulting video"
+                    ToolTip.delay: 500
+                    ToolTip.visible: hovered
                 }
                 Label {
                     Layout.columnSpan: 2
                 }
-
 
                 Switch {
                     id: exportAsOverlaySwitch
@@ -186,6 +184,10 @@ Window {
                             imagecomposer.updateComposition();
                         }
                     }
+                    ToolTip.text: "Exports the graph/text overlay (png only)"
+                    ToolTip.delay: 500
+                    ToolTip.visible: hovered
+
                 }
                 Label {
                     Layout.columnSpan: 2
@@ -237,7 +239,6 @@ Window {
                         }
                     }
                 }
-
 
                 Connections {
                     target: videocapturelist

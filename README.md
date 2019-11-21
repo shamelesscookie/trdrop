@@ -3,7 +3,7 @@
     <img height="100" src="images/logos/trdrop_logo_alpha.png">
 </p>
 
-# trdrop
+# trdrop - v1.0.0
 ###### ˈtɛr-dɹɑp - a raw video analysis program
 
 ## Examples
@@ -17,9 +17,13 @@
 ## Binaries
 
 ```diff
-- This is highly volatile as I'm not sure if the installer works for everybody yet
-- Please create an issue if you encounter problems
+- Please create an issue if you encounter problems and search the closed issues for already solved ones.
+
+- If you want to have a specific feature in mind, please attach as much exemplary information as possible (screenshots, mockups)
 ```
+
+* [**Issues**](https://github.com/cirquit/trdrop/issues?q=is%3Aopen+is%3Aissue)
+* [**Solved Issues**](https://github.com/cirquit/trdrop/issues?q=is%3Aissue+is%3Aclosed)
 
 See the [**release page**](https://github.com/cirquit/trdrop/releases) for the Windows installer. Other distributions are on the roadmap (Linux, MacOS).
 
@@ -71,4 +75,4 @@ trdrop is created with the [Qt framework](https://www.qt.io/) and [OpenCV](https
 
 ## License
 
-We have to run with the LGPLv3 license as Qt forces us to. As far as I understand it (**not a lawyer**), you can use the software commercially. [This seems like a good summary](https://www.embeddeduse.com/2016/04/10/using-qt-5-6-and-later-under-lgpl/) of the restrictions which should be only of interest to the embedded crowd.
+[MIT License](https://en.wikipedia.org/wiki/MIT_License). Commercial use is allowed.

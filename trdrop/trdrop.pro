@@ -31,8 +31,8 @@ unix: LIBS += -L/usr/local/lib \
         -lopencv_videoio \
         -lopencv_video
 
-windows: INCLUDEPATH += c:\opencv-4.1.0\build\install\include
-windows: LIBS += -LC:\\opencv-4.1.0\build\install\x86\mingw\lib \
+windows: INCLUDEPATH += c:\opencv-4.1.0-64\build\install\include
+windows: LIBS += -LC:\\opencv-4.1.0-64\build\install\x64\mingw\lib \
         -lopencv_calib3d410 \
         -lopencv_core410 \
         -lopencv_dnn410 \
@@ -77,12 +77,10 @@ HEADERS += \
     headers/cpp_interface/resolution.h \
     headers/cpp_interface/valueitem.h \
     headers/cpp_interface/colorpickitem.h \
-    headers/cpp_interface/fpsoptions.h \
     headers/cpp_interface/tearoptions.h \
     headers/cpp_interface/textedititem.h \
     headers/cpp_interface/videocapturelist.h \
     headers/cpp_interface/imageformat.h \
-    headers/cpp_interface/videoformat.h \
     headers/cpp_interface/frameratemodel.h \
     headers/qml_interface/imagecomposer_qml.h \
     headers/qml_interface/imageconverter_qml.h \
@@ -91,12 +89,10 @@ HEADERS += \
     headers/qml_interface/viewer_qml.h \
     headers/qml_interface/exporter_qml.h \
     headers/qml_models/fileitemmodel.h \
-    headers/qml_models/fpsoptionsmodel.h \
     headers/qml_models/generaloptionsmodel.h \
     headers/qml_models/resolutionsmodel.h \
     headers/qml_models/tearoptionsmodel.h \
     headers/qml_models/imageformatmodel.h \
-    headers/qml_models/videoformatmodel.h \
     headers/qml_models/exportoptionsmodel.h \
     headers/cpp_interface/framerateplot.h \
     headers/cpp_interface/frametimeplot.h \
@@ -104,7 +100,9 @@ HEADERS += \
     headers/cpp_interface/frameprocessing.h \
     headers/qml_interface/frameprocessing_qml.h \
     headers/cpp_interface/teardata.h \
-    headers/cpp_interface/tearmodel.h
+    headers/cpp_interface/tearmodel.h \
+    headers/cpp_interface/framerateoptions.h \
+    headers/qml_models/framerateoptionsmodel.h
 
 
 RC_ICONS = images/trdrop_logo_alpha.ico

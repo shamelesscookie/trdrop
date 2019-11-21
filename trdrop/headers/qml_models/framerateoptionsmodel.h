@@ -1,23 +1,23 @@
-#ifndef FPSOPTIONSMODEL_H
-#define FPSOPTIONSMODEL_H
+#ifndef FRAMERATEOPTIONSMODEL_H
+#define FRAMERATEOPTIONSMODEL_H
 
 #include <QAbstractTableModel>
 #include <QDebug>
 #include <memory>
 
-#include "headers/cpp_interface/fpsoptions.h"
+#include "headers/cpp_interface/framerateoptions.h"
 #include "headers/cpp_interface/frameratemodel.h"
 #include "headers/qml_models/resolutionsmodel.h"
 
-//!
-class FPSOptionsModel : public QAbstractListModel
+//! holds the framerate options for all videos and functions as QML model
+class FramerateOptionsModel : public QAbstractListModel
 {
     Q_OBJECT
 //! constructors
 public:
-    //! TODO
-    FPSOptionsModel(std::shared_ptr<FramerateModel> shared_framerate_model
-                  , std::shared_ptr<QList<FPSOptions>> shared_fps_options_list
+    //! holds shared models because FPSOptions need them
+    FramerateOptionsModel(std::shared_ptr<FramerateModel> shared_framerate_model
+                  , std::shared_ptr<QList<FramerateOptions>> shared_fps_options_list
                   , std::shared_ptr<ResolutionsModel> shared_resolution_model
                   , QObject * parent = nullptr)
         : QAbstractListModel(parent)
@@ -29,31 +29,27 @@ public:
         _init_options();
         _setup_role_names();
     }
-    //!
+    //! QML enums
     enum FPSOptionsRoles
     {
-        ColorPickNameRole            = Qt::UserRole + 30
-      , ColorPickTooltipRole         = Qt::UserRole + 31
-      , ColorPickValueRole           = Qt::UserRole + 32
-      , PixelDifferenceNameRole      = Qt::UserRole + 33
-      , PixelDifferenceTooltipRole   = Qt::UserRole + 34
-      , PixelDifferenceValueRole     = Qt::UserRole + 35
-      , PixelDifferenceEnabledRole   = Qt::UserRole + 36
-      , DisplayedTextNameRole        = Qt::UserRole + 37
-      , DisplayedTextTooltipRole     = Qt::UserRole + 38
-      , DisplayedTextValueRole       = Qt::UserRole + 39
-      , DisplayedTextFontRole        = Qt::UserRole + 40
-      , DisplayedTextEnabledRole     = Qt::UserRole + 41
-      , RecordedFramerateNameRole    = Qt::UserRole + 42
-      , RecordedFramerateTooltipRole = Qt::UserRole + 43
-      , RecordedFramerateValueRole   = Qt::UserRole + 44
-      , FPSOptionsEnabled            = Qt::UserRole + 46
+        ColorPickNameRole          = Qt::UserRole + 30
+      , ColorPickTooltipRole       = Qt::UserRole + 31
+      , ColorPickValueRole         = Qt::UserRole + 32
+      , PixelDifferenceNameRole    = Qt::UserRole + 33
+      , PixelDifferenceTooltipRole = Qt::UserRole + 34
+      , PixelDifferenceValueRole   = Qt::UserRole + 35
+      , PixelDifferenceEnabledRole = Qt::UserRole + 36
+      , DisplayedTextNameRole      = Qt::UserRole + 37
+      , DisplayedTextTooltipRole   = Qt::UserRole + 38
+      , DisplayedTextValueRole     = Qt::UserRole + 39
+      , DisplayedTextFontRole      = Qt::UserRole + 40
+      , DisplayedTextEnabledRole   = Qt::UserRole + 41
+      , FPSOptionsEnabled          = Qt::UserRole + 42
+      , FontSizeOverrideRole       = Qt::UserRole + 43
     };
 //! methods
 public:
-    //! TODO
-    Q_SIGNAL void propagateFPSOptions(const QList<FPSOptions> fpsOptionsList);
-    //! TODO
+    //! row count of our model
     int rowCount(const QModelIndex & parent = QModelIndex()) const override
     {
         Q_UNUSED(parent)
@@ -61,7 +57,7 @@ public:
     }
     //! a getter for the _role_names to enable the access via QML
     QHash<int, QByteArray> roleNames() const override { return _role_names; }
-    //! QAbstractModel function which is called if a read in QML happens
+    //! called on read in QML
     QVariant data(const QModelIndex & index,int role) const override
     {
         int row = index.row();
@@ -91,19 +87,15 @@ public:
                  return (*_shared_fps_options_list)[row].displayed_text.font();
             case DisplayedTextEnabledRole:
                  return (*_shared_fps_options_list)[row].displayed_text.enabled();
-            case RecordedFramerateNameRole:
-                 return (*_shared_fps_options_list)[row].recorded_framerate.name();
-            case RecordedFramerateTooltipRole:
-                 return (*_shared_fps_options_list)[row].recorded_framerate.tooltip();
-            case RecordedFramerateValueRole:
-                 return (*_shared_fps_options_list)[row].recorded_framerate.value();
             case FPSOptionsEnabled:
                  return (*_shared_fps_options_list)[row].enabled;
+            case FontSizeOverrideRole:
+                 return (*_shared_fps_options_list)[row].displayed_text_fontsize_override;
             default:
                 return QVariant();
         }
     }
-    //! QAbstractModel function which is called if an assignment in QML happens
+    //! called on assignment in QML
     bool setData(const QModelIndex & index, const QVariant & value, int role) override
     {
         int row = index.row();
@@ -119,20 +111,20 @@ public:
         else if (role == DisplayedTextValueRole)     (*_shared_fps_options_list)[row].displayed_text.setValue(value.toString());
         else if (role == DisplayedTextFontRole)      (*_shared_fps_options_list)[row].displayed_text.setFont(value.value<QFont>());
         else if (role == DisplayedTextEnabledRole)   (*_shared_fps_options_list)[row].displayed_text.setEnabled(value.toBool());
-        else if (role == RecordedFramerateValueRole) (*_shared_fps_options_list)[row].recorded_framerate.setValue(value.toDouble());
         else if (role == FPSOptionsEnabled)          (*_shared_fps_options_list)[row].enabled = value.toBool();
+        else if (role == FontSizeOverrideRole)       (*_shared_fps_options_list)[row].displayed_text_fontsize_override = value.toBool();
         else return false;
         QModelIndex toIndex(createIndex(rowCount() - 1, index.column()));
         emit dataChanged(index, toIndex);
         return true;
     }
-    //! tells the views that the model's state has changed -> this triggers a "recompution" of the delegate
+    //! tells the views that the model's state has changed, triggers a recomputation of each delegate
     Q_INVOKABLE void resetModel()
     {
         beginResetModel();
         endResetModel();
     }
-    //! apply the pixel difference to all indices
+    //! apply the pixel difference to ALL indices
     Q_INVOKABLE void applyPixelDifference(const QVariant & value)
     {
         QModelIndex q0 = createIndex(0, 0);
@@ -142,13 +134,13 @@ public:
         setData(q1, value, PixelDifferenceValueRole);
         setData(q2, value, PixelDifferenceValueRole);
     }
-    //! apply the pixel difference to all indices
+    //! applies the color to the corresponding row
     Q_INVOKABLE void applyColor(const QVariant & value, const int & row)
     {
         QModelIndex q = createIndex(row, 0);
         setData(q, value, ColorPickValueRole);
     }
-    //! TODO
+    //! inits default options and triggers an update for all "listeners"
     Q_INVOKABLE void revertModelToDefault()
     {
         for (quint8 id = 0; id < 3; ++id) {
@@ -156,7 +148,7 @@ public:
         }
         resetModel();
     }
-    //! TODO
+    //! enables the corresponding FramerateOptions based on the amount of filepaths
     Q_INVOKABLE void updateEnabledRows(const QList<QVariant> filePaths)
     {
         int video_count = filePaths.size();
@@ -167,19 +159,10 @@ public:
             setData(q, loaded_file, FPSOptionsEnabled);
         }
     }
-    //! TODO
-    Q_INVOKABLE void setRecordedFramerates(const QList<double> recorded_framerates)
-    {
-        for (int i = 0; i < recorded_framerates.length(); ++i)
-        {
-            const double framerate = recorded_framerates[i];
-            QModelIndex q = createIndex(i, 0);
-            setData(q, framerate, RecordedFramerateValueRole);
-        }
-    }
 //! methods
 private:
-    //! Set names to the role name hash container (QHash<int, QByteArray>)
+    //! set names to the role name hash container (QHash<int, QByteArray>)
+    //! QML translates the string-value into the corresponding Enum which is used in this class
     void _setup_role_names()
     {
         _role_names[ColorPickNameRole]    = "colorName";
@@ -197,32 +180,30 @@ private:
         _role_names[DisplayedTextFontRole]      = "displayedTextFont";
         _role_names[DisplayedTextEnabledRole]   = "displayedTextEnabled";
 
-        _role_names[RecordedFramerateNameRole]    = "recordedFramerateName";
-        _role_names[RecordedFramerateTooltipRole] = "recordedFramerateTooltip";
-        _role_names[RecordedFramerateValueRole]   = "recordedFramerate";
-
         _role_names[FPSOptionsEnabled] = "fpsOptionsEnabled";
+
+        _role_names[FontSizeOverrideRole] = "fpsTextSizeOverride";
     }
-    //! TODO
+    //! default framerate options
     void _init_options()
     {
         for (quint8 id = 0; id < _max_video_count; ++id) {
-            _shared_fps_options_list->append(FPSOptions(id, _shared_framerate_model, _shared_resolution_model));
+            _shared_fps_options_list->append(FramerateOptions(id, _shared_framerate_model, _shared_resolution_model));
         }
     }
 
 //! member
 private:
-    //! TODO
+    //! framerate model to get the current framerate from, used by FPSOptions
     std::shared_ptr<FramerateModel> _shared_framerate_model;
-    //! TODO
-    std::shared_ptr<QList<FPSOptions>> _shared_fps_options_list;
-    //! TODO
+    //! the model of this class
+    std::shared_ptr<QList<FramerateOptions>> _shared_fps_options_list;
+    //! resolution model, used by FPSOptions
     std::shared_ptr<ResolutionsModel> _shared_resolution_model;
-    //! TODO
-    quint8 _max_video_count;
+    //! hardcoded maximum video count
+    const quint8 _max_video_count;
     //! used by the QAbstractListModel to save the role names from QML
     QHash<int, QByteArray> _role_names;
 };
 
-#endif // FPSOPTIONSMODEL_H
+#endif // FRAMERATEOPTIONSMODEL_H

@@ -235,7 +235,7 @@ Window {
                                     fpsTab.enabled  = true;
                                     tearTab.enabled = true;
                                     frametimeTab.enabled = true;
-                                    fpsOptionsModel.revertModelToDefault();
+                                    framerateOptionsModel.revertModelToDefault();
                                     generalOptionsModel.revertModelToDefault();
                                 }
                             }
@@ -259,7 +259,7 @@ Window {
                     spacing: 4
                     model: DelegateModel {
                         id: fpsOptionsVisual
-                        model: fpsOptionsModel
+                        model: framerateOptionsModel
                         delegate: fpsOptionsDelegate
                     }
                 }
@@ -268,7 +268,7 @@ Window {
                     Frame {
                         width: fpsOptions.width * 0.95
                         GridLayout {
-                            columns: 4
+                            columns: 5
 
                             Label {
                                 id: colorLabel
@@ -303,11 +303,11 @@ Window {
                                 }
                             }
                             Button {
-                                Layout.columnSpan: 2
+                                Layout.columnSpan: 3
                                 text:  "Replicate Color"
-                                //ToolTip.text: "Replicate this color to tears and frametime of this video index"
-                                //ToolTip.delay: 500
-                                //ToolTip.visible: hovered
+                                ToolTip.text: "Replicate this color to tears of this video index"
+                                ToolTip.delay: 500
+                                ToolTip.visible: hovered
                                 enabled: model.fpsOptionsEnabled
                                 action: Action {
                                     onTriggered:
@@ -338,11 +338,11 @@ Window {
                                 }
                             }
                             Button {
-                                Layout.columnSpan: 2
+                                Layout.columnSpan: 3
                                 text: "Apply to all videos"
                                 enabled: model.fpsOptionsEnabled
                                 action: Action {
-                                    onTriggered: fpsOptionsModel.applyPixelDifference(model.pixelDifference)
+                                    onTriggered: framerateOptionsModel.applyPixelDifference(model.pixelDifference)
                                 }
                             }
 
@@ -395,8 +395,8 @@ Window {
                             }
                             Switch {
                                 id: fpsTextEnabled
-                                checked: true
-                                enabled: model.fpsOptionsEnabled
+                                checked: model.fpsOptionsEnabled
+                                enabled: true
                                 action: Action {
                                     onTriggered: {
                                         fpsText.enabled = !fpsText.enabled;
@@ -405,9 +405,22 @@ Window {
                                         model.displayedTextEnabled = fpsText.enabled
                                     }
                                 }
-                                //ToolTip.text: "Disable text and framerate rendering"
-                                //ToolTip.delay: 500
-                                //ToolTip.visible: hovered
+                                ToolTip.text: "Disable text"
+                                ToolTip.delay: 500
+                                ToolTip.visible: hovered
+                            }
+                            Switch {
+                                id: fpsTextSizeOverride
+                                checked: model.fpsTextSizeOverride
+                                enabled: true
+                                action: Action {
+                                    onTriggered: {
+                                        model.fpsTextSizeOverride = !model.fpsTextSizeOverride;
+                                    }
+                                }
+                                ToolTip.text: "Override font size"
+                                ToolTip.delay: 500
+                                ToolTip.visible: hovered
                             }
                         }
                     }
@@ -474,7 +487,7 @@ Window {
                                 enabled: model.tearOptionsEnabled
                                 action: Action {
                                     onTriggered:
-                                        fpsOptionsModel.applyColor(model.color, index)
+                                        framerateOptionsModel.applyColor(model.color, index)
                                 }
                             }
 
@@ -494,6 +507,9 @@ Window {
                                 onValueChanged: {
                                     if (model.dismissTearPercentage !== value){ model.dismissTearPercentage = value; }
                                 }
+                                ToolTip.text: "Tears that take less than this percentage of the video height count as new frame"
+                                ToolTip.delay: 500
+                                ToolTip.visible: hovered
                             }
                             Button {
                                 text: "Apply to all"

@@ -4,6 +4,7 @@
 #include <QQuickView>
 #include <QQmlContext>
 #include <QFontDatabase>
+//#include <QQmlDebuggingEnabler>
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -32,9 +33,12 @@
 int main(int argc, char *argv[])
 {
     // general application stuff
+    //QQmlDebuggingEnabler enabler;
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication app(argc, argv);
     QQmlApplicationEngine engine;
+    app.setOrganizationName("trdrop");
+    app.setOrganizationDomain("trdrop");
     QQuickStyle::setStyle("Material");
     QFontDatabase::addApplicationFont(":/fonts/FjallaOne-Regular.ttf");
     // TODO evaluate if we need these fonts
@@ -126,11 +130,13 @@ int main(int argc, char *argv[])
                            , shared_export_options_model
                            , shared_framerate_plot_instance
                            , shared_frametime_plot_instance
-                           , shared_tear_model);
+                           , shared_tear_model
+                           , shared_resolution_model);
     engine.rootContext()->setContextProperty("renderer", &renderer_qml);
     ExporterQML exporter_qml(shared_export_options_model
                            , shared_imageformat_model
-                           , shared_framerate_model);
+                           , shared_framerate_model
+                           , shared_frametime_model);
     engine.rootContext()->setContextProperty("exporter", &exporter_qml);
 
     // sigals in c++ (main processing pipeline)
@@ -152,10 +158,15 @@ int main(int argc, char *argv[])
     QObject::connect(&exporter_qml,         &ExporterQML::requestNextImages,   &videocapturelist_qml, &VideoCaptureListQML::readNextFrames);
 
     // meta data pipeline
-    // link the options with the renderer
     QObject::connect(&framerate_options_model,         &FramerateOptionsModel::dataChanged, &renderer_qml, &RendererQML::redraw);
     QObject::connect(&tear_options_model,              &TearOptionsModel::dataChanged,      &renderer_qml, &RendererQML::redraw);
     QObject::connect(&(*shared_general_options_model), &GeneralOptionsModel::dataChanged,   &renderer_qml, &RendererQML::redraw);
+    // if new videos are added, redraw and reset everything, including the buffer for framerate centering)
+    QObject::connect(&file_item_model,                 &FileItemModel::updateFileItemPaths, &renderer_qml, &RendererQML::forced_reshape_redraw);
+    // if new videos are added, finish the exporting (closes the csv filehandle)
+    QObject::connect(&file_item_model,                 &FileItemModel::updateFileItemPaths, &exporter_qml, &ExporterQML::finishExporting);
+    // if new videos are added, update the count so we can export the correct amount of entries for the csv file
+    QObject::connect(&file_item_model,                 &FileItemModel::updateFileItemPaths, &exporter_qml, &ExporterQML::updateVideoCount);
 
     // load application
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));

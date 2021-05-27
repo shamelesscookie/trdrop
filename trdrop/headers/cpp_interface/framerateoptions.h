@@ -1,8 +1,11 @@
-#ifndef FRAMERATEOPTIONS_H
+﻿#ifndef FRAMERATEOPTIONS_H
 #define FRAMERATEOPTIONS_H
 
 #include <QPainter>
 #include <memory>
+#include <random>
+#include <iostream>
+#include <cstdlib>
 
 #include "headers/cpp_interface/checkboxitem.h"
 #include "headers/cpp_interface/colorpickitem.h"
@@ -25,7 +28,7 @@ public:
         , enabled(false) // initialized by default to false, because revert_to_default button in options should not reset this
         , _shared_framerate_model(shared_framerate_model)
         , _shared_resolution_model(shared_resolution_model)
-        , _text_shadow(41, 41, 41) // dark grey
+        , text_shadow(41, 41, 41) // dark grey
     {
         _init_member();
     }
@@ -38,10 +41,10 @@ public:
         _init_member();
     }
     //! paints the framerate text at the position x, y (top-left is 0,0)
-    void paint_fps_text(QPainter * painter, int x, int y)
+    void paint_fps_text(QPainter * painter, const int x, const int y, const size_t frame_index)
     {
-        int x_offset = 2;
-        int y_offset = 2;
+        const int x_offset = _get_shadow_text_offset();
+        const int y_offset = x_offset;
 
         QFont displayed_text_font = displayed_text.font();
         if (displayed_text_fontsize_override)
@@ -49,13 +52,13 @@ public:
             displayed_text_font.setPointSize(_get_font_size());
         }
         // draw shadow
-        painter->setPen(_text_shadow);
+        painter->setPen(text_shadow);
         painter->setFont(displayed_text_font);
-        painter->drawText(x + x_offset, y + y_offset, _get_full_text());
+        painter->drawText(x + x_offset, y + y_offset, _get_full_text(frame_index));
         // draw real text
         painter->setPen(fps_plot_color.color());
         painter->setFont(displayed_text_font);
-        painter->drawText(x, y, _get_full_text());
+        painter->drawText(x, y, _get_full_text(frame_index));
     }
 
 // methods
@@ -64,11 +67,11 @@ private:
     void _init_member()
     {
         fps_plot_color.setName("Framerate plot color");
-        fps_plot_color.setTooltip("Color of the framerate graph of this video index in the framerate plot");
-        fps_plot_color.setColor("#FAFAFA");
+        fps_plot_color.setTooltip("Color of the framerate and frametime graph of this video index");
+        fps_plot_color.setColor(_get_random_color());
 
         pixel_difference.setName("Pixel difference");
-        pixel_difference.setTooltip("Pixel Difference Margin (0 - 255)\n \
+        pixel_difference.setTooltip("Pixel Difference Margin (0 - 255)\n\
     Currently every frame is converted to greyscale and compared on a pixel basis. Greater is more \"forgiving\"\n\
     Example: \"5\" - The difference in color may be up to 5 to NOT trigger a new frame");
         pixel_difference.setValue(0);
@@ -81,11 +84,19 @@ private:
         displayed_text.setFont(QFont("Fjalla One", 18));
 
         displayed_text_fontsize_override = true;
+
+        rel_fps_text_x_position.setName("Relative FPS Text X Pos.");
+        rel_fps_text_x_position.setTooltip("");
+        rel_fps_text_x_position.setValue(0.05);
+
+        rel_fps_text_y_position.setName("Relative FPS Text Y Pos.");
+        rel_fps_text_y_position.setTooltip("");
+        rel_fps_text_y_position.setValue(0.1);
     }
-    //! adds the framerate prefix text defined in the options to the current framerate of the designated video
-    QString _get_full_text() const
+    //! adds the framerate prefix text defined in the options to the framerate of the designated video
+    QString _get_full_text(const size_t frame_index) const
     {
-        double framerate = _shared_framerate_model->get_framerate_at(video_id);
+        double framerate = _shared_framerate_model->get_framerate_history(video_id)[frame_index];
         return displayed_text.value() + " " + QString::number(framerate, 10, 1);
     }
     //! resolution adaptive font size
@@ -102,11 +113,34 @@ private:
         qDebug() << "FPSOptions::_get_font_size() - there is no case for the current resolution(" << current_size << "), this should never happen";
         return 13;
     }
+    //! get text offset for shadows below the text
+    int _get_shadow_text_offset()
+    {
+        QSize current_size = _shared_resolution_model->get_active_size();
+        if      (current_size == QSize(960, 540))   return 2;
+        else if (current_size == QSize(1280, 720))  return 3;
+        else if (current_size == QSize(1600, 900))  return 4;
+        else if (current_size == QSize(1920, 1080)) return 4;
+        else if (current_size == QSize(2048, 1152)) return 5;
+        else if (current_size == QSize(2560, 1440)) return 5;
+        else if (current_size == QSize(3840, 2160)) return 7;
+        qDebug() << "FramerateOptions::_get_shadow_text_offset() - there is no case for the current resolution(" << current_size << "), this should never happen";
+        return 3;
+    }
+    //! custom palettes so the default color is not white
+    QString _get_random_color()
+    {
+        QList<QString> colors { "#cdf6cb", "#ecd2e5", "#a8cc9a", "#c1eae0"
+                              , "#6ac4cd", "#a2ebeb", "#e6f2f4", "#ff7cc2" };
+        int index = rand() % (colors.size());
+        QString color = colors[index];
+        return color;
+    }
 
 // member
 public:
     //! hold the id (starting from 0) of the responsible video
-    quint8       video_id;
+    quint8 video_id;
     //! framerate color, used for text and plot color
     ColorPickItem fps_plot_color;
     //! how big can the difference in the RGB space get between two pixels for us to detect a difference
@@ -122,7 +156,11 @@ public:
     //! the current resolution might be needed to adapt the fontsize automatically (currently not used)
     std::shared_ptr<ResolutionsModel> _shared_resolution_model;
     //! to create a shadow effect we draw the text with an offset first
-    QColor _text_shadow;
+    QColor text_shadow;
+    //! X fps text position (relative to the viewport, between (0,1) where 0 is the most left
+    ValueItem<double> rel_fps_text_x_position;
+    //! Y fps text position (relative to the viewport, between (0,1) where 0 is the top
+    ValueItem<double> rel_fps_text_y_position;
 };
 
 #endif // FRAMERATEOPTIONS_H

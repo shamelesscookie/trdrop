@@ -40,6 +40,10 @@ public:
       , EnableLivePreviewNameRole      = Qt::UserRole + 117
       , EnableLivePreviewTooltipRole   = Qt::UserRole + 118
       , EnableLivePreviewValueRole     = Qt::UserRole + 119
+      , CSVFileNameNameRole            = Qt::UserRole + 120
+      , CSVFileNameTooltipRole         = Qt::UserRole + 121
+      , CSVFileNameEnabledRole         = Qt::UserRole + 122
+      , CSVFileNameValueRole           = Qt::UserRole + 123
     };
 //! methods
 public:
@@ -89,6 +93,14 @@ public:
                 return _enable_live_preview.value();
             case EnabledExportButtonRole:
                 return _enabled_export_button;
+            case CSVFileNameNameRole:
+                return _csv_filename.name();
+            case CSVFileNameTooltipRole:
+                return _csv_filename.tooltip();
+            case CSVFileNameEnabledRole:
+                return _csv_filename.enabled();
+            case CSVFileNameValueRole:
+                return _csv_filename.value();
             default:
                 return QVariant();
         }
@@ -102,12 +114,14 @@ public:
         else if (role == ExportCSVValueRole)             _export_csv.setValue(value.toBool());
         else if (role == ImagesequencePrefixValueRole)   _imagesequence_prefix.setValue(value.toString());
         else if (role == ImagesequencePrefixEnabledRole) _imagesequence_prefix.setEnabled(value.toBool());
+        else if (role == CSVFileNameValueRole)           _csv_filename.setValue(value.toString());
+        else if (role == CSVFileNameEnabledRole)         _csv_filename.setEnabled(value.toBool());
         else if (role == EnableLivePreviewValueRole)     _enable_live_preview.setValue(value.toBool());
         else if (role == EnabledExportButtonRole)        _enabled_export_button = value.toBool();
         else return false;
-        //QModelIndex toIndex(createIndex(rowCount() - 1, index.column()));
-        //emit dataChanged(index, toIndex);
-        resetModel();
+        QModelIndex toIndex(createIndex(rowCount() - 1, index.column()));
+        emit dataChanged(index, toIndex);
+        //resetModel();
         return true;
     }
     //! tells the views that the model's state has changed -> this triggers a "recompution" of the delegate
@@ -142,6 +156,8 @@ public:
     //! getter
     QString get_export_directory(){ return _export_directory.value(); }
     //! getter
+    QString get_csv_filename(){ return _csv_filename.value(); }
+    //! getter
     bool export_as_imagesequence(){ return _imagesequence_prefix.enabled(); }
     //! getter
     bool export_as_overlay(){ return _export_as_overlay.value(); }
@@ -169,7 +185,10 @@ private:
         _role_names[EnableLivePreviewNameRole]      = "enableLivePreviewName";
         _role_names[EnableLivePreviewTooltipRole]   = "enableLivePreviewTooltip";
         _role_names[EnableLivePreviewValueRole]     = "enableLivePreviewValue";
-
+        _role_names[CSVFileNameNameRole]            = "csvFileNameName";
+        _role_names[CSVFileNameTooltipRole]         = "csvFileNameTooltip";
+        _role_names[CSVFileNameEnabledRole]         = "csvFileNameEnabled";
+        _role_names[CSVFileNameValueRole]           = "csvFileNameValue";
     }
     //! default initial options
     void _init_options()
@@ -180,22 +199,28 @@ private:
         _export_directory.setValue(getDefaultMoviesDirectory().toString());
 
         _export_as_overlay.setName("Export as overlay");
-        _export_as_overlay.setTooltip("Export the graph only");
+        _export_as_overlay.setTooltip("Video content replaced by an alpha channel, only showing the graph (.png only)");
         _export_as_overlay.setValue(false);
 
         _enable_live_preview.setName("Enable live preview");
-        _enable_live_preview.setTooltip("Show the rendered frames");
+        _enable_live_preview.setTooltip("Disabling this will not show the created imagesequence, but will speed up the exporting");
         _enable_live_preview.setValue(true);
 
         _export_csv.setName("Export csv");
-        _export_csv.setTooltip("Export framerate as csv file");
+        _export_csv.setTooltip("Export framerate/frametime for each video as csv file in the same directory as the images");
         _export_csv.setValue(false);
 
         _imagesequence_prefix.setName("Export as imagesequence");
-        _imagesequence_prefix.setTooltip("Export the analysis as imagesequence");
+        _imagesequence_prefix.setTooltip("Appends the frame number after the set name (e.g. exportsequence_0000000000)");
         _imagesequence_prefix.setValue("exportsequence_");
         _imagesequence_prefix.setEnabled(true);
         _imagesequence_prefix.setFont(QFont("Helvetica", 15));
+
+        _csv_filename.setName("CSV Filename"); // not used because a switch already shows that text
+        _csv_filename.setTooltip("");
+        _csv_filename.setValue("trdrop_analysis.csv");
+        _csv_filename.setEnabled(false); // by default false, same as the csv export
+        _csv_filename.setFont(QFont("Helvetica", 15));
 
         _enabled_export_button = false;
     }
@@ -214,6 +239,8 @@ private:
     CheckBoxItem _export_csv;
     //! imageprefix name
     TextEditItem _imagesequence_prefix;
+    //! csv file prefix name
+    TextEditItem _csv_filename;
     //!
     bool _enabled_export_button;
 };

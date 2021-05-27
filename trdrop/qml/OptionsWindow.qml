@@ -13,8 +13,8 @@ Window {
     id: optionsWindow
     title: "Options"
     visible: true
-    width: 800
-    minimumHeight: 700
+    width: 900
+    minimumHeight: 940
     flags: if (Qt.platform.os == "linux") { return Qt.SubWindow } else { return Qt.Dialog }
     Material.theme: Material.Dark
     Material.accent: Material.DeepPurple
@@ -115,8 +115,9 @@ Window {
                 Component {
                     id: generalOptionsDelegate
                     GridLayout {
-                        rows: 4
+                        rows: 8
                         columns: 3
+                        // 1st row
                         Switch {
                             text: model.enableFramerateName
                             checked: model.enableFramerateValue
@@ -126,8 +127,13 @@ Window {
                             action: Action {
                                 onTriggered: {
                                     model.enableFramerateValue = !model.enableFramerateValue;
+                                    if (!model.enableFramerateValue)
+                                    {
+                                        model.enableXAxisTextValue = false;
+                                    }
                                     fpsTab.enabled = model.enableFramerateValue;
                                     framerateRange.enabled = model.enableFramerateValue;
+                                    framerateMaxFPS.enabled = model.enableFramerateValue;
                                     if (model.enableFramerateValue === false)
                                     {
                                         model.enableTearsValue = false;
@@ -157,6 +163,31 @@ Window {
                                 if (model.framerateRangeValue !== value) model.framerateRangeValue = Utils.round(value, 0);
                             }
                         }
+
+                        // 2nd row
+                        Label {}
+                        Label {
+                            Layout.leftMargin: 20
+                            text: model.framerateMaxFPSName
+                        }
+                        SpinBox {
+                            id: framerateMaxFPS
+                            from: 3 // 3 segments at least (0-1-2-3)
+                            to: 999 // max font size for 3 chars
+                            stepSize: 5
+                            editable: true
+                            value: model.framerateMaxFPSValue
+                            ToolTip.delay: 500
+                            ToolTip.visible: hovered
+                            ToolTip.text: model.framerateMaxFPSTooltip
+                            textFromValue: function(value, locale) { return value.toString() + ' fps'; }
+                            valueFromText: function(value, locale) { return value.replace(' fps', ''); }
+                            onValueChanged: {
+                                if (model.framerateMaxFPSValue !== value) model.framerateMaxFPSValue = Utils.round(value, 0);
+                            }
+                        }
+
+                        // 3rd row
                         Switch {
                             Layout.columnSpan: 3
                             text: model.enableTearsName
@@ -178,6 +209,7 @@ Window {
                             }
                         }
 
+                        // 4th row
                         Switch {
                             text: model.enableFrametimeName
                             checked: model.enableFrametimeValue
@@ -189,6 +221,7 @@ Window {
                                     model.enableFrametimeValue = !model.enableFrametimeValue;
                                     //frametimeTab.enabled = model.enableFrametimeValue // we have currently no options to set
                                     frametimeRange.enabled = model.enableFrametimeValue
+                                    frametimeMaxMS.enabled = model.enableFrametimeValue
                                 }
                             }
                         }
@@ -213,6 +246,30 @@ Window {
                             }
                         }
 
+                        // 5th row
+                        Label {}
+                        Label {
+                            Layout.leftMargin: 20
+                            text: model.frametimeMaxMSName
+                        }
+                        SpinBox {
+                            id: frametimeMaxMS
+                            from: 3 // 3 segments at least (0-1-2-3)
+                            to: 999 // max font size for 3 chars
+                            stepSize: 5
+                            editable: true
+                            value: model.frametimeMaxMSValue
+                            ToolTip.delay: 500
+                            ToolTip.visible: hovered
+                            ToolTip.text: model.frametimeMaxMSTooltip
+                            textFromValue: function(value, locale) { return value.toString() + ' ms'; }
+                            valueFromText: function(value, locale) { return value.replace(' ms', ''); }
+                            onValueChanged: {
+                                if (model.frametimeMaxMSValue !== value) model.frametimeMaxMSValue = Utils.round(value, 0);
+                            }
+                        }
+
+                        // 6th row
                         Switch {
                             Layout.columnSpan: 3
                             text: model.enableDeltaRenderingName
@@ -226,7 +283,36 @@ Window {
                                 }
                             }
                         }
+                        // 7th row
+                        Switch {
+                            Layout.columnSpan: 3
+                            text: model.enableFramerateCenteringName
+                            checked: model.enableFramerateCenteringValue
+                            ToolTip.delay: 500
+                            ToolTip.visible: hovered
+                            ToolTip.text: model.enableFramerateCenteringTooltip
+                            action: Action {
+                                onTriggered: {
+                                    model.enableFramerateCenteringValue = !model.enableFramerateCenteringValue;
+                                }
+                            }
+                        }
 
+                        // 8th row
+                        Switch {
+                            Layout.columnSpan: 3
+                            text: model.enableXAxisTextName
+                            checked: model.enableXAxisTextValue
+                            ToolTip.delay: 500
+                            ToolTip.visible: hovered
+                            ToolTip.text: model.enableXAxisTextTooltip
+                            action: Action {
+                                onTriggered: {
+                                    model.enableXAxisTextValue = !model.enableXAxisTextValue;
+                                }
+                            }
+                        }
+                        // 9th row
                         Button {
                             Layout.columnSpan: 3
                             text: "Revert to default settings"
@@ -269,14 +355,11 @@ Window {
                         width: fpsOptions.width * 0.95
                         GridLayout {
                             columns: 5
-
+                            // 1st row
                             Label {
                                 id: colorLabel
                                 text: model.colorName + ":"
                                 Layout.rightMargin: 5
-                                ToolTip.text: model.colorTooltip
-                                ToolTip.delay: 500
-                                ToolTip.visible: hovered
                             }
                             Rectangle {
                                 id: fpsColorRectangle
@@ -314,7 +397,7 @@ Window {
                                         tearOptionsModel.applyColor(model.color, index)
                                 }
                             }
-
+                            // 2nd row
                             Label {
                                 text: model.pixelDifferenceName + ":"
                                 Layout.rightMargin: 5
@@ -345,7 +428,7 @@ Window {
                                     onTriggered: framerateOptionsModel.applyPixelDifference(model.pixelDifference)
                                 }
                             }
-
+                            // 3rd row
                             Label {
                                 text: model.displayedTextName
                             }
@@ -422,6 +505,74 @@ Window {
                                 ToolTip.delay: 500
                                 ToolTip.visible: hovered
                             }
+                            // 4th row
+                            Label {
+                                text: model.fpsTextXPositionName + ":"
+                                Layout.rightMargin: 5
+                                //ToolTip.text: model.pixelDifferenceTooltip
+                                //ToolTip.delay: 500
+                                //ToolTip.visible: hovered
+                            }
+                            Slider {
+                                id: textPositioningXSlider
+                                from: 0.0
+                                to: 1.0
+                                enabled: model.fpsOptionsEnabled
+                                stepSize: 0.01
+                                value: model.fpsTextXPosition
+                                onMoved: {
+                                    if (model.fpsTextXPosition !== value) model.fpsTextXPosition = Utils.round(value, 2);
+                                }
+                            }
+                            Label {
+                                text: model.fpsTextXPosition
+                                Layout.rightMargin: 5
+                                //ToolTip.text: model.pixelDifferenceTooltip
+                                //ToolTip.delay: 500
+                                //ToolTip.visible: hovered
+                            }
+                            Button {
+                                Layout.columnSpan: 2
+                                text: "Apply to all videos"
+                                enabled: model.fpsOptionsEnabled
+                                action: Action {
+                                    onTriggered: framerateOptionsModel.applyFPSTextXPosition(model.fpsTextXPosition)
+                                }
+                            }
+                            // 5th row
+                            Label {
+                                text: model.fpsTextYPositionName + ":"
+                                Layout.rightMargin: 5
+                                //ToolTip.text: model.pixelDifferenceTooltip
+                                //ToolTip.delay: 500
+                                //ToolTip.visible: hovered
+                            }
+                            Slider {
+                                id: textPositioningYSlider
+                                from: 0.0
+                                to: 1.0
+                                enabled: model.fpsOptionsEnabled
+                                stepSize: 0.01
+                                value: model.fpsTextYPosition
+                                onMoved: {
+                                    if (model.fpsTextYPosition !== value) model.fpsTextYPosition = Utils.round(value, 2);
+                                }
+                            }
+                            Label {
+                                text: model.fpsTextYPosition
+                                Layout.rightMargin: 5
+                                //ToolTip.text: model.pixelDifferenceTooltip
+                                //ToolTip.delay: 500
+                                //ToolTip.visible: hovered
+                            }
+                            Button {
+                                Layout.columnSpan: 2
+                                text: "Apply to all videos"
+                                enabled: model.fpsOptionsEnabled
+                                action: Action {
+                                    onTriggered: framerateOptionsModel.applyFPSTextYPosition(model.fpsTextYPosition)
+                                }
+                            }
                         }
                     }
                 }
@@ -455,7 +606,7 @@ Window {
 
                             Label {
                                 id: colorLabel
-                                text: model.colorName + ":"
+                                text: model.colorName
                                 Layout.rightMargin: 5
                             }
                             Rectangle {
@@ -468,7 +619,6 @@ Window {
                                 Layout.leftMargin:  50
                                 Layout.rightMargin: 50
                                 Layout.fillWidth: true
-                                ToolTip.text: model.colorTooltip
                                 MouseArea {
                                     anchors.fill: parent
                                     enabled: model.tearOptionsEnabled
@@ -507,7 +657,7 @@ Window {
                                 onValueChanged: {
                                     if (model.dismissTearPercentage !== value){ model.dismissTearPercentage = value; }
                                 }
-                                ToolTip.text: "Tears that take less than this percentage of the video height count as new frame"
+                                ToolTip.text: "Tears that take less than this percentage of the video height count as new frame\nExample: Video has 30FPS. If 40% of the frame is from the previous frame, but 60% is new, this can lead to 60FPS.\nTo count this as the correct 30 FPS, you need to set the Tear Difference to 50%."
                                 ToolTip.delay: 500
                                 ToolTip.visible: hovered
                             }

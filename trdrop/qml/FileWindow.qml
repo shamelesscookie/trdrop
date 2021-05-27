@@ -18,6 +18,7 @@ Window {
     Material.theme: Material.Dark
     Material.accent: Material.DeepPurple
     Pane {
+        id: fileManagementPane
         width: parent.width
         height: parent.height
         Component {
@@ -219,7 +220,7 @@ Window {
 
     Connections {
         target: fileItemModel
-        onUpdateFileItemPaths: {
+        function onUpdateFileItemPaths(filePaths) {
             videocapturelist.openAllPaths(filePaths);
             frameprocessing.resetState(videocapturelist.getUnsignedRecordedFramerates());
             fileItemModel.setRecordedFramerates(getVisualFileItemPaths()

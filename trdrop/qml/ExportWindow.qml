@@ -2,9 +2,9 @@ import QtQuick 2.12
 import QtQml.Models 2.1
 import QtQuick.Window 2.12
 import QtQuick.Controls.Material 2.12
-import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.12
 import QtQuick.Dialogs 1.2
+import QtQuick.Controls 2.15
 
 import "../utils.js" as Utils
 
@@ -12,7 +12,7 @@ Window {
     id: exportWindow
     title: "Export"
     visible: true
-    width: 740
+    width: 700
     minimumHeight: 410
     flags: if (Qt.platform.os == "linux") { return Qt.SubWindow } else { return Qt.Dialog }
     Material.theme: Material.Dark
@@ -116,6 +116,9 @@ Window {
                         onEditingFinished: {
                             model.imagesequencePrefixValue = text;
                         }
+                        Component.onCompleted: {
+                            text = model.imagesequencePrefixValue
+                        }
                     }
                 }
                 ComboBox {
@@ -125,8 +128,10 @@ Window {
                     model: imageFormatModel
                     //enabled: model.imagesequencePrefixEnabled
                     onActivated: {
-                        //let format = imageFormatModel.getValueAt(currentIndex);
                         imageFormatModel.setActiveValueAt(currentIndex);
+                    }
+                    Component.onCompleted: {
+                        currentIndex = imageFormatModel.getActiveValueIndex();
                     }
                 }
 
@@ -137,15 +142,46 @@ Window {
                     action: Action {
                         onTriggered: {
                             model.exportCSVValue = !model.exportCSVValue;
-                            checked: model.exportCSVValue
+                            //exportAsCSVSwitchName.enabled = model.exportCSVValue;
                         }
                     }
-                    ToolTip.text: "Exports the framerate into a trdrop_analysis.csv into the export directory for each video"
+                    ToolTip.text: model.exportCSVTooltip
                     ToolTip.delay: 500
                     ToolTip.visible: hovered
                 }
+                Rectangle {
+                    border {
+                        color: "#8066b0"
+                        width: 1
+                    }
+                    Layout.fillWidth: parent
+                    height: 25
+                    width: 300
+                    Layout.leftMargin: 20
+                    Layout.rightMargin: 20
+                    color: "transparent"
+                    TextInput {
+                        id: exportAsCSVSwitchName
+                        anchors.fill: parent
+                        leftPadding: 5
+                        topPadding: 2
+                        bottomPadding: 2
+                        enabled: model.exportCSVValue
+                        text: model.csvFileNameValue
+                        clip: true
+
+                        font.pointSize: 12
+                        color: enabled ? "#FFFFFF" : "#b0b0b0";
+                        onEditingFinished: {
+                            model.csvFileNameValue = text;
+                        }
+                        Component.onCompleted: {
+                            text = model.csvFileNameValue
+                        }
+                    }
+                }
                 Label {
-                    Layout.columnSpan: 2
+                    Layout.columnSpan: 1
                 }
 
                 Switch {
@@ -155,10 +191,9 @@ Window {
                     action: Action {
                         onTriggered: {
                             model.enableLivePreviewValue = !model.enableLivePreviewValue;
-                            checked: model.enableLivePreviewValue
                         }
                     }
-                    ToolTip.text: "Enables the live rendering of the resulting video"
+                    ToolTip.text: model.enableLivePreviewTooltip
                     ToolTip.delay: 500
                     ToolTip.visible: hovered
                 }
@@ -173,7 +208,6 @@ Window {
                     action: Action {
                         onTriggered: {
                             model.exportAsOverlayValue = !model.exportAsOverlayValue;
-                            checked: model.exportAsOverlayValue
                             if (model.exportAsOverlayValue)
                             {
                                 // 0 - JPEG, 1 - PNG
@@ -184,7 +218,7 @@ Window {
                             imagecomposer.updateComposition();
                         }
                     }
-                    ToolTip.text: "Exports the graph/text overlay (png only)"
+                    ToolTip.text: model.exportAsOverlayTooltip
                     ToolTip.delay: 500
                     ToolTip.visible: hovered
 
@@ -202,11 +236,14 @@ Window {
                     Layout.leftMargin: 20
                     Layout.rightMargin: 20
                     Layout.fillWidth: true
-                    textRole: "resolutionName"
                     model: resolutionsModel
+                    textRole: "resolutionName"
                     onActivated: {
                         resolutionsModel.setActiveValueAt(currentIndex);
                         imagecomposer.updateComposition();
+                    }
+                    Component.onCompleted: {
+                        currentIndex = resolutionsModel.getActiveValueIndex();
                     }
                 }
                 Label { }
@@ -235,18 +272,21 @@ Window {
                             exportProgressBar.value = 0.0;
                             exporter.stopExporting();
                         } else {
-                            exporter.startExporting()
+                            if (videocapturelist.getOpenVideosCount() > 0)
+                            {
+                                exporter.startExporting()
+                            }
                         }
                     }
                 }
 
                 Connections {
                     target: videocapturelist
-                    onFramesReady: {
+                    function onFramesReady() {
                         exportProgressBar.value = videocapturelist.getShortestVideoProgress();
-                        exportButton.text       = Utils.round(videocapturelist.getShortestVideoProgress() * 100, 1) + "%";
+                        exportButton.text       = Utils.round(videocapturelist.getShortestVideoProgress() * 100, 1) + "% (Space to pause)";
                     }
-                    onFinishedProcessing: {
+                    function onFinishedProcessing() {
                         exportButton.text = "Export";
                         exportProgressBar.value = 0.0;
                         frameprocessing.resetState(videocapturelist.getUnsignedRecordedFramerates());

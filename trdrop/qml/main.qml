@@ -25,7 +25,7 @@ ApplicationWindow
         // disable the background if the export as overlay and the text would show
         Connections {
             target: fileItemModel
-            onDataChanged: startupBackground.visible = videocapturelist.getOpenVideosCount() === 0;
+            function onDataChanged() { startupBackground.visible = videocapturelist.getOpenVideosCount() === 0; }
         }
     }
     // drawn over the startup background for simplicity
@@ -33,9 +33,9 @@ ApplicationWindow
         visible: true
     }
     // only allow fullscreen view
-    Component.onCompleted: {
-        rootWindow.showFullScreen();
-    }
+    //Component.onCompleted: {
+    //    rootWindow.showFullScreen();
+    //}
 
     // not needed yet
     // statusBar: TrdropStatusBar { }

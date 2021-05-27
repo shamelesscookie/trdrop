@@ -9,6 +9,7 @@
 #include "headers/qml_models/exportoptionsmodel.h"
 #include "headers/qml_models/imageformatmodel.h"
 #include "headers/cpp_interface/frameratemodel.h"
+#include "headers/cpp_interface/frametimemodel.h"
 #include "opencv2/opencv.hpp"
 #include "opencv2/highgui.hpp"
 
@@ -24,6 +25,7 @@ public:
     ExporterQML(std::shared_ptr<ExportOptionsModel> export_options_model
               , std::shared_ptr<ImageFormatModel>   imageformat_model
               , std::shared_ptr<FramerateModel> shared_framerate_model
+              , std::shared_ptr<FrametimeModel> shared_frametime_model
               , QObject * parent = nullptr)
         : QObject(parent)
         , _is_exporting(false)
@@ -33,6 +35,8 @@ public:
         , _imageformat_model(imageformat_model)
         , _file_opened(false)
         , _shared_framerate_model(shared_framerate_model)
+        , _shared_frametime_model(shared_frametime_model)
+        , _active_video_count(0)
     { }
 
 //! methods
@@ -64,6 +68,8 @@ public:
     {
         _close_csv_file();
         qDebug() << "ExporterQML:finishExporting triggered";
+        _frame_count = 0;
+        _file_item_list.clear();
         stopExporting();
     }
     //! on start exporting trigger
@@ -76,12 +82,23 @@ public:
     Q_INVOKABLE void stopExporting()
     {
         setIsExporting(false);
-        _frame_count = 0;
     }
     //! setter
     Q_SLOT void setIsExporting(bool other){ _is_exporting = other; }
     //! getter
     Q_SLOT bool isExporting(){ return _is_exporting; }
+    //! save the amount of current videos to be processed and their name (used for csv export)
+    Q_SLOT void updateVideoCount(QList<QVariant> fileItemList)
+    {
+        _active_video_count = fileItemList.size();
+        _file_item_list.clear();
+        for(int i = 0; i < fileItemList.size(); ++i)
+        {
+            QString file_path = fileItemList[i].toString();
+            QFileInfo file_info(file_path);
+            _file_item_list.append(file_info.baseName());
+        }
+    }
 
 //! methods
 private:
@@ -89,7 +106,8 @@ private:
     QString _create_csv_file_path() const
     {
         QString directory_path = _export_options_model->get_export_directory();
-        return QDir(directory_path).filePath("trdrop_analysis.csv");
+        QString csv_filename = _export_options_model->get_csv_filename();
+        return QDir(directory_path).filePath(csv_filename);
     }
     //! opens the filehandle
     void _open_csv_file()
@@ -116,22 +134,36 @@ private:
             _open_csv_file();
             _file_opened = true;
             _csv_file_handle->open(QIODevice::Append | QIODevice::Text);
+            QTextStream stream(&(*_csv_file_handle));
+            for (int i = 0; i < _active_video_count; ++i)
+            {
+                stream << "FPS of " << _file_item_list[i] << ",";
+                stream << "Frametime in MS of " << _file_item_list[i];
+                if (i < _active_video_count - 1) stream << ",";
+                if (i == _active_video_count - 1) stream << "\n";
+            }
         }
 
         QTextStream stream(&(*_csv_file_handle));
         std::vector<double> framerates = _shared_framerate_model->get_framerates();
+        std::vector<double> frametimes = _shared_frametime_model->get_frametimes();
 
-        for (size_t i = 0; i < framerates.size(); ++i)
+        for (int i = 0; i < _active_video_count; ++i)
         {
-            stream << framerates[i];
-            if (i < framerates.size() - 1) stream << ",";
-            if (i == framerates.size() - 1) stream << "\n";
+            stream << framerates[i] << ",";
+            stream << frametimes[i];
+            if (i < _active_video_count - 1) stream << ",";
+            if (i == _active_video_count - 1) stream << "\n";
         }
     }
     //! constructos the image filepath from the directory, imageprefix and extention
     QString _create_image_file_path() const
     {
         QString directory_path = _export_options_model->get_export_directory();
+        if (!QDir(directory_path).exists())
+        {
+            QDir().mkdir(directory_path);
+        }
         QString imagesequence_prefix = _export_options_model->get_imagesequence_prefix();
         QString image_postfix = _imageformat_model->get_active_value().name();
         return QDir(directory_path).filePath(imagesequence_prefix + _get_frame_count() + image_postfix);
@@ -169,6 +201,12 @@ public:
     bool _file_opened;
     //! use to get the current framerates for csv file exporting
     std::shared_ptr<FramerateModel> _shared_framerate_model;
+    //! use to get the current frametimes for csv file exporting
+    std::shared_ptr<FrametimeModel> _shared_frametime_model;
+    //! video count update through the fileitem model and its signal (see FileWindow.qml)
+    int _active_video_count = 0;
+    //! storage for the video paths
+    QList<QString> _file_item_list;
 };
 
 #endif // EXPORTCONTROLLER_QML_H

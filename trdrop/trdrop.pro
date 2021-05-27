@@ -31,23 +31,25 @@ unix: LIBS += -L/usr/local/lib \
         -lopencv_videoio \
         -lopencv_video
 
-windows: INCLUDEPATH += c:\opencv-4.1.0-64\build\install\include
-windows: LIBS += -LC:\\opencv-4.1.0-64\build\install\x64\mingw\lib \
-        -lopencv_calib3d410 \
-        -lopencv_core410 \
-        -lopencv_dnn410 \
-        -lopencv_features2d410 \
-        -lopencv_flann410 \
-        -lopencv_gapi410 \
-        -lopencv_highgui410 \
-        -lopencv_imgcodecs410 \
-        -lopencv_imgproc410 \
-        -lopencv_ml410 \
-        -lopencv_objdetect410 \
-        -lopencv_photo410 \
-        -lopencv_stitching410 \
-        -lopencv_videoio410 \
-        -lopencv_video410
+# windows: INCLUDEPATH += c:\opencv-4.5.1\build\install\include
+windows: INCLUDEPATH += c:\opencv-4.5.1\build_64\install\include
+# windows: LIBS += -Lc:\opencv-4.5.1\build\install\x64\mingw\lib \
+windows: LIBS += -Lc:\opencv-4.5.1\build_64\install\x64\mingw\lib \
+        -lopencv_calib3d451 \
+        -lopencv_core451 \
+        -lopencv_dnn451 \
+        -lopencv_features2d451 \
+        -lopencv_flann451 \
+        -lopencv_gapi451 \
+        -lopencv_highgui451 \
+        -lopencv_imgcodecs451 \
+        -lopencv_imgproc451 \
+        -lopencv_ml451 \
+        -lopencv_objdetect451 \
+        -lopencv_photo451 \
+        -lopencv_stitching451 \
+        -lopencv_videoio451 \
+        -lopencv_video451
 
 
 # openmp support to allow parallelism
@@ -105,4 +107,4 @@ HEADERS += \
     headers/qml_models/framerateoptionsmodel.h
 
 
-RC_ICONS = images/trdrop_logo_alpha.ico
+RC_ICONS = images/trdrop_logo_alpha_wide_contour.ico
